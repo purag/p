@@ -8,7 +8,7 @@ usage () {
     echo "Long usage coming soon!"
     usage
   else
-    echo "usage: $exe [h] <command> [<args>]"
+    echo "usage: $exe [help|h] <command> [<args>]"
     echo ""
     echo "Common commands:"
     echo "  archive, ar     Archive an active project"
