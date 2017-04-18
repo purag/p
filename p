@@ -1,6 +1,11 @@
 #!/bin/bash
 
-exe=$0
+exe=
+if [[ $(which p) = *"/.p/p" ]]; then
+  exe="p"
+else
+  exe=$0
+fi
 
 # Helpers
 usage () {
