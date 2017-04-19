@@ -83,7 +83,7 @@ usage () {
 
 # usage output for p archive/ar
 commands_archive_usage () {
-  true
+  echo "usage: $exe archive <project>"
 }
 
 # usage output for p copy/cp
@@ -97,17 +97,17 @@ commands_copy_usage () {
 
 # usage output for p dump/d
 commands_dump_usage () {
-  true
+  echo "usage: $exe dump [<args>]"
 }
 
 # usage output for p go/g
 commands_go_usage () {
-  true
+  echo "usage: $exe go <project>"
 }
 
 # usage output for p list/ls
 commands_list_usage () {
-  true
+  echo "usage: $exe list [<category>] [<args>]"
 }
 
 # usage output for p start/s
@@ -129,7 +129,7 @@ commands_start_usage () {
 
 # usage output for p todo/t
 commands_todo_usage () {
-  true
+  echo "usage: $exe todo [-x TASK_NUMBER] [TASK]"
 }
 
 
