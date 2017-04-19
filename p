@@ -46,6 +46,23 @@ indev () {
   exit 0
 }
 
+declare -A shortToLong
+shortToLong[ar]="archive"
+shortToLong[cp]="copy"
+shortToLong[d]="dump"
+shortToLong[g]="go"
+shortToLong[ls]="list"
+shortToLong[s]="start"
+shortToLong[t]="todo"
+
+declare -A longToShort
+shortToLong[archive]="ar"
+shortToLong[copy]="cp"
+shortToLong[dump]="d"
+shortToLong[go]="g"
+shortToLong[list]="ls"
+shortToLong[start]="s"
+shortToLong[todo]="t"
 
 ## usage
 ## ==========
