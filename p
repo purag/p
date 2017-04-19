@@ -15,6 +15,7 @@ P_DIR=$(dirname $0)
 
 declare -A colors
 colors[red]=$(tput setaf 1)
+colors[green]=$(tput setaf 2)
 colors[reset]=$(tput sgr0)
 
 # Print a string in the specified color
@@ -37,6 +38,14 @@ failwith () {
   usage
   exit 1
 }
+
+# Output an "in development" message
+indev () {
+  color green "$1 is still in development!"
+  usage
+  exit 0
+}
+
 
 ## usage
 ## ==========
@@ -182,9 +191,33 @@ case $1 in
     esac
     ;;
 
+  "archive" | "ar" )
+    indev $1
+    ;;
+
+  "copy" | "cp" )
+    indev $1
+    ;;
+
+  "dump" | "d" )
+    indev $1
+    ;;
+
+  "go" | "g" )
+    indev $1
+    ;;
+
+  "list" | "ls" )
+    indev $1
+    ;;
+
   # Start command. Start a new project.
   "start" | "s" )
     [ $# -lt 2 ] && err "missing required project name" && start_usage && exit 1
+    ;;
+
+  "todo" | "t" )
+    indev $1
     ;;
 
   *)
