@@ -1,15 +1,13 @@
 #!/bin/bash
 
 declare exe
-declare P_DIR
-
 if [[ $(which p) = *"/.p/p" ]]; then
   exe="p"
-  P_DIR="~/.p"
 else
   exe=$0
-  P_DIR=$(dirname $0)
 fi
+
+P_DIR=$(dirname $0)
 
 # Helpers
 declare -A colors
