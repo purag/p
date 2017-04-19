@@ -21,9 +21,14 @@ color () {
   printf '%s' "${colors[reset]}"
 }
 
+# Print an error
+err () {
+  color red "error: $1" >&2
+}
+
 # Output an error and exit with nonzero status
 failwith () {
-  color red $1 >&2
+  err "$@"
   usage
   exit 1
 }
@@ -62,6 +67,9 @@ fi
 
 # Actually parse the command...
 case $1 in
+
+  # Help command. Show detailed instructions for specific commands,
+  #   or long usage if no command is specified
   "help" | "h" )
     [ $# -lt 2 ] && usage --long && exit 0
 
@@ -91,6 +99,11 @@ case $1 in
       *)
         failwith "unknown command: $2"
     esac
+    ;;
+
+  # Start command. Start a new project.
+  "start" | "s" )
+    [ $# -lt 2 ] && err "missing required project name" && start_usage && exit 1
     ;;
 
   *)
