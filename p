@@ -3,8 +3,10 @@
 exe=
 if [[ $(which p) = *"/.p/p" ]]; then
   exe="p"
+  P_DIR="~/.p"
 else
   exe=$0
+  P_DIR=$(dirname $0)
 fi
 
 # Helpers
@@ -89,6 +91,16 @@ copy_usage () {
   echo ""
   echo "Arguments:"
   echo "  <newname>            The name for the new project"
+}
+
+# Parse ~/.prc
+parse_config () {
+  echo "~/.prc"
+}
+
+# Read project configurations
+read_projects () {
+  echo P_DIR
 }
 
 # Actually parse the command...
