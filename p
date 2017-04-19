@@ -65,6 +65,32 @@ if [ $# -lt 1 ]; then
   exit 0
 fi
 
+# Print usage instructions for the start/s command
+start_usage () {
+  echo "usage: $exe start <name> [<args>]"
+  echo "  Start a new project."
+  echo ""
+  echo "Arguments:"
+  echo "  --with t1[,t2...]    Run the specified initializers after creating the project"
+  echo "   -w t1[,t2...]         Available by default: git, npm"
+  echo "  --at <dir>           Path to the directory where the project will live"
+  echo "   -a <dir>              Default: ~/projects/<name>"
+  echo "  --bare, -b           Initialize the project with just a name (p won't ask for any"
+  echo "                         other details)"
+  echo "  --cd                 cd into the project directory after creation"
+  echo "  --then <file>        Path to a custom script that will automatically be executed in"
+  echo "                         the project directory after creation"
+}
+
+# Print the usage instructions for the copy/cp command
+copy_usage () {
+  echo "usage: $exe copy <nameToCopy> [<newName>] [<args>]"
+  echo "  Create a new project using an existing project's configuration."
+  echo ""
+  echo "Arguments:"
+  echo "  <newname>            The name for the new project"
+}
+
 # Actually parse the command...
 case $1 in
 
@@ -75,27 +101,11 @@ case $1 in
 
     case $2 in
       "start" | "s" )
-        echo "usage: $exe start <name> [<args>]"
-        echo ""
-        echo "Arguments:"
-        echo "  --with t1[,t2...]    Run the specified initializers after creating the project"
-        echo "   -w t1[,t2...]         Available by default: git, npm"
-        echo "  --at <dir>           Path to the directory where the project will live"
-        echo "   -a <dir>              Default: ~/projects/<name>"
-        echo "  --bare, -b           Initialize the project with just a name (p won't ask for any"
-        echo "                         other details)"
-        echo "  --cd                 cd into the project directory after creation"
-        echo "  --then <file>        Path to a custom script that will automatically be executed in"
-        echo "                         the project directory after creation"
+        start_usage
         ;;
-
       "copy" | "cp" )
-        echo "usage: $exe copy <nameToCopy> [<newName>] [<args>]"
-        echo ""
-        echo "Arguments:"
-        echo "  <newname>            The name for the new project"
+        copy_usage
         ;;
-
       *)
         failwith "unknown command: $2"
     esac
