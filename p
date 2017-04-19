@@ -9,7 +9,10 @@ fi
 
 P_DIR=$(dirname $0)
 
-# Helpers
+
+## HELPERS
+## ==========
+
 declare -A colors
 colors[red]=$(tput setaf 1)
 colors[reset]=$(tput sgr0)
@@ -35,7 +38,10 @@ failwith () {
   exit 1
 }
 
-# Print top-level usage instructions
+## usage
+## ==========
+## Prints the top-level usage instructions
+
 usage () {
   if [ "$1" = "--long" ]; then
     echo "Long usage coming soon!"
@@ -116,6 +122,11 @@ commands_start_usage () {
 commands_todo_usage () {
   true
 }
+
+
+## EXECUTION
+## =========
+## Actually run the program
 
 # Parse ~/.prc
 parse_config () {
