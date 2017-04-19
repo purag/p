@@ -1,6 +1,8 @@
 #!/bin/bash
 
-exe=
+declare exe
+declare P_DIR
+
 if [[ $(which p) = *"/.p/p" ]]; then
   exe="p"
   P_DIR="~/.p"
@@ -61,12 +63,6 @@ usage () {
   fi
 }
 
-# Print short usage if no arguments were provided
-if [ $# -lt 1 ]; then
-  usage
-  exit 0
-fi
-
 # Print usage instructions for the start/s command
 start_usage () {
   echo "usage: $exe start <name> [<args>]"
@@ -95,13 +91,22 @@ copy_usage () {
 
 # Parse ~/.prc
 parse_config () {
-  echo "~/.prc"
+  true
 }
+parse_config
 
 # Read project configurations
 read_projects () {
-  echo P_DIR
+  true
 }
+read_projects
+
+# Print short usage if no arguments were provided
+if [ $# -lt 1 ]; then
+  # TODO: if CWD is a project directory, print info
+  usage
+  exit 0
+fi
 
 # Actually parse the command...
 case $1 in
