@@ -134,6 +134,7 @@ case $1 in
     ;;
 
   *)
+    # TODO: if $1 is a project name, switch to its directory
     failwith "unknown command: $1"
     ;;
 esac
