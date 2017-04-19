@@ -6,7 +6,7 @@ Just clone this repo in your home directory:
 
 ```
 $ cd
-$ git clone https://github.com/purag/.p.git
+$ git clone https://github.com/purag/p.git ~/.p
 ```
 
 And add it to your PATH (I recommend adding this to your `.bashrc`):
