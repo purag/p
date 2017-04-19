@@ -52,17 +52,19 @@ shortToLong[cp]="copy"
 shortToLong[d]="dump"
 shortToLong[g]="go"
 shortToLong[ls]="list"
+shortToLong[r]="restore"
 shortToLong[s]="start"
 shortToLong[t]="todo"
 
 declare -A longToShort
-shortToLong[archive]="ar"
-shortToLong[copy]="cp"
-shortToLong[dump]="d"
-shortToLong[go]="g"
-shortToLong[list]="ls"
-shortToLong[start]="s"
-shortToLong[todo]="t"
+longToShort[archive]="ar"
+longToShort[copy]="cp"
+longToShort[dump]="d"
+longToShort[go]="g"
+longToShort[list]="ls"
+longToShort[restore]="r"
+longToShort[start]="s"
+longToShort[todo]="t"
 
 ## usage
 ## ==========
@@ -85,6 +87,7 @@ usage () {
     echo "  dump, d         Dump active project configuration to stdout"
     echo "  go, g           Go to a project directory by its name"
     echo "  list, ls        List your projects"
+    echo "  restore, r      Restore a project configuration from a dump file"
     echo "  start, s        Start a new project"
     echo "  todo, t         Add and modify project TODOs"
     echo ""
@@ -125,6 +128,11 @@ commands_go_usage () {
 # usage output for p list/ls
 commands_list_usage () {
   echo "usage: $exe list [<category>] [<args>]"
+}
+
+# usage output for p restore/r
+commands_restore_usage () {
+  echo "usage: $exe restore [<dumpfile>]"
 }
 
 # usage output for p start/s
@@ -197,6 +205,9 @@ case $1 in
       "list" | "ls" )
         commands_list_usage
         ;;
+      "restore" | "r" )
+        commands_restore_usage
+        ;;
       "start" | "s" )
         commands_start_usage
         ;;
@@ -225,6 +236,10 @@ case $1 in
     ;;
 
   "list" | "ls" )
+    indev $1
+    ;;
+
+  "restore" | "r" )
     indev $1
     ;;
 
