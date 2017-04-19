@@ -61,8 +61,42 @@ usage () {
   fi
 }
 
-# Print usage instructions for the start/s command
-start_usage () {
+
+## commands_*_usage
+## ================
+## Functions for printing each command's usage
+
+# usage output for p archive/ar
+commands_archive_usage () {
+  true
+}
+
+# usage output for p copy/cp
+commands_copy_usage () {
+  echo "usage: $exe copy <nameToCopy> [<newName>] [<args>]"
+  echo "  Create a new project using an existing project's configuration."
+  echo ""
+  echo "Arguments:"
+  echo "  <newname>            The name for the new project"
+}
+
+# usage output for p dump/d
+commands_dump_usage () {
+  true
+}
+
+# usage output for p go/g
+commands_go_usage () {
+  true
+}
+
+# usage output for p list/ls
+commands_list_usage () {
+  true
+}
+
+# usage output for p start/s
+commands_start_usage () {
   echo "usage: $exe start <name> [<args>]"
   echo "  Start a new project."
   echo ""
@@ -78,13 +112,9 @@ start_usage () {
   echo "                         the project directory after creation"
 }
 
-# Print the usage instructions for the copy/cp command
-copy_usage () {
-  echo "usage: $exe copy <nameToCopy> [<newName>] [<args>]"
-  echo "  Create a new project using an existing project's configuration."
-  echo ""
-  echo "Arguments:"
-  echo "  <newname>            The name for the new project"
+# usage output for p todo/t
+commands_todo_usage () {
+  true
 }
 
 # Parse ~/.prc
@@ -115,11 +145,26 @@ case $1 in
     [ $# -lt 2 ] && usage --long && exit 0
 
     case $2 in
-      "start" | "s" )
-        start_usage
+      "archive" | "ar" )
+        commands_archive_usage
         ;;
       "copy" | "cp" )
-        copy_usage
+        commands_copy_usage
+        ;;
+      "dump" | "d" )
+        commands_dump_usage
+        ;;
+      "go" | "g" )
+        commands_go_usage
+        ;;
+      "list" | "ls" )
+        commands_list_usage
+        ;;
+      "start" | "s" )
+        commands_start_usage
+        ;;
+      "todo" | "t" )
+        commands_todo_usage
         ;;
       *)
         failwith "unknown command: $2"
