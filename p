@@ -68,7 +68,7 @@ start_usage () {
   echo ""
   echo "Arguments:"
   echo "  --with t1[,t2...]    Run the specified initializers after creating the project"
-  echo "   -w t1[,t2...]         Available by default: git, npm"
+  echo "   -w t1[,t2...]         Available by default: git, gh, npm"
   echo "  --at <dir>           Path to the directory where the project will live"
   echo "   -a <dir>              Default: ~/projects/<name>"
   echo "  --bare, -b           Initialize the project with just a name (p won't ask for any"
