@@ -230,7 +230,7 @@ case $1 in
 
   # Start command. Start a new project.
   "start" | "s" )
-    [ $# -lt 2 ] && err "missing required project name" && start_usage && exit 1
+    [ $# -lt 2 ] && err "missing required project name" && commands_start_usage && exit 1
     ;;
 
   "todo" | "t" )
