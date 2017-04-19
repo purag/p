@@ -8,6 +8,27 @@ else
 fi
 
 # Helpers
+declare -A colors
+colors[red]=$(tput setaf 1)
+colors[reset]=$(tput sgr0)
+
+# Print a string in the specified color
+color () {
+  local c=$1
+  shift
+  printf '%s' "${colors[$c]}"
+  printf '%s\n' "$@"
+  printf '%s' "${colors[reset]}"
+}
+
+# Output an error and exit with nonzero status
+failwith () {
+  color red $1 >&2
+  usage
+  exit 1
+}
+
+# Print top-level usage instructions
 usage () {
   if [ "$1" = "--long" ]; then
     echo "Long usage coming soon!"
@@ -31,12 +52,6 @@ usage () {
     echo "  help, h         Show all commands, or get more help on one"
     echo ""
   fi
-}
-
-failwith () {
-  echo $1
-  usage
-  exit 1
 }
 
 # Print short usage if no arguments were provided
