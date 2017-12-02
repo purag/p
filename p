@@ -192,8 +192,14 @@ if [ $# -lt 1 ]; then
   exit 0
 fi
 
+# save the entire command
+cmd="$@"
+
+subcmd="$1"
+shift
+
 # Actually parse the command...
-case $1 in
+case $subcmd in
 
   # Help command. Show detailed instructions for specific commands,
   #   or long usage if no command is specified
