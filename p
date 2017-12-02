@@ -253,7 +253,18 @@ case $subcmd in
     ;;
 
   "list" | "ls" )
-    indev $1
+    if [ "$PROJECTS" = "" ]; then
+      echo "You don't have any projects...yet!"
+      echo
+      echo "Start a new project with: $exe start"
+    else
+      for p in $PROJECTS; do
+        name=$(cut -d':' -f1 <<< "$p")
+        dir=$(cut -d':' -f2 <<< "$p")
+        echo "\"$name\" at $dir:"
+        echo "  "
+      done
+    fi
     ;;
 
   "restore" | "r" )
