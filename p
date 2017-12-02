@@ -273,7 +273,49 @@ case $subcmd in
 
   # Start command. Start a new project.
   "start" | "s" )
-    [ $# -lt 2 ] && err "missing required project name" && commands_start_usage && exit 1
+    [ $# -lt 1 ] && err "missing required project name" && commands_start_usage && exit 1
+    name="$1"
+    shift
+    safename=${name//_/} # underscores
+    safename=${safename// /_} # ' ' => _
+    safename=${safename//[^a-zA-Z0-9_]/} # non alphanumeric
+    safename=${safename,,} # lowercase
+    dir="~/projects/$safename"
+    postcd=
+
+    for arg in "$@"; do
+      shift
+      case arg in
+        "--with" | "-w" )
+          indev $arg
+          shift
+          ;;
+        "--at" | "-a" )
+          [ $# -lt 1 ] && err "missing path for --at/-a" && commands_start_usage && exit 1
+          dir="$1"
+          dir=${dir//_/}
+          dir=${dir// /_}
+          dir=${dir//[^a-zA-Z0-9_]/}
+          dir=${dir,,}
+          shift
+          ;;
+        "--cd" )
+          postcd=true
+          ;;
+        "--then" )
+          indev $arg
+          shift
+          ;;
+        * )
+          err "invalid argument: $arg" && commands_start_usage && exit 1
+      esac
+    done
+
+    sh -c "mkdir -p $dir"
+    [ ! "$PROJECTS" = "" ] && echo >> "$P_DIR/projects"
+    echo "$name:$dir" >> "$P_DIR/projects"
+    echo "  cmd: $cmd" >> "$P_DIR/projects"
+    # TODO: cd into $dir
     ;;
 
   "todo" | "t" )
