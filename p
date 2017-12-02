@@ -48,7 +48,7 @@ __p_exp () {
 __p_usage () {
   if [ "$1" = "--long" ]; then
     echo "Long usage coming soon!"
-    usage
+    __p_usage
   else
     echo "usage: $exe [<project>] [help|h] [<command> [<args>]]"
     echo ""
@@ -171,9 +171,9 @@ p () {
   # Parse ~/.prc
   cur=1
   while read line; do
-    [[  "$line" =~ ^# ]] && continue
-    lhs=$(cut -d'=' -f1 <<< "$line")
-    rhs=$(cut -d'=' -f2 <<< "$line")
+    [[ "$line" =~ ^# ]] && cur=$((cur + 1)) && continue
+    lhs=$(cut -d'=' -f1 <<< "$line" | xargs)
+    rhs=$(cut -d'=' -f2 <<< "$line" | xargs)
     case $lhs in
       "default_project_dir")
         DEFAULT_PROJECT_DIR=$(envsubst <<< "$rhs")
@@ -191,7 +191,7 @@ p () {
   # Print short usage if no arguments were provided
   if [ $# -lt 1 ]; then
     # TODO: if CWD is a project directory, print info
-    usage
+    __p_usage
     return
   fi
 
