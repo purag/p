@@ -33,7 +33,12 @@ __p_indev () {
 
 # Perform shell expansion on a given path
 __p_exp () {
-  echo $(sh -c "cd $1; pwd")
+  exp=$(sh -c "cd $1; pwd" 2>&1)
+  if [ ! $? ]; then
+    echo $(cut -d' ' -f-1 <<< $"epx")
+  else
+    echo "$exp"
+  fi
 }
 
 ## usage
@@ -193,16 +198,13 @@ p () {
   # save the entire command
   cmd="$@"
 
-  subcmd="$1"
-  shift
-
   # Actually parse the command...
-  case $subcmd in
+  case $1 in
 
     # Help command. Show detailed instructions for specific commands,
     #   or long usage if no command is specified
     "help" | "h" )
-      [ $# -lt 2 ] && __p_usage --long && return
+      [ $# -ne 2 ] && __p_usage --long && return
 
       case $2 in
         "archive" | "ar" )
@@ -247,16 +249,17 @@ p () {
       ;;
 
     "go" | "g" )
-      [ $# -lt 1 ] && err "missing required project name" && __p_commands_go_usage && return
+      [ $# -lt 2 ] && err "missing required project name" && __p_commands_go_usage && return
+      [ $# -gt 2 ] && err "extra arguments not supported" && __p_commands_go_usage && return
       for p in $PROJECTS; do
         name=$(cut -d':' -f1 <<< "$p")
         dir=$(cut -d':' -f2 <<< "$p")
-        if [ "$name" = "$1" ]; then
+        if [ "$name" = "$2" ]; then
           cd $(__p_exp $dir)
           return
         fi
       done
-      __p_failwith "no project named \"$1\"" && return
+      __p_failwith "no project named \"$2\"" && return
       ;;
 
     "list" | "ls" )
@@ -278,51 +281,59 @@ p () {
       __p_indev $1
       ;;
 
-      # Start command. Start a new project.
-      "start" | "s" )
+    # Start command. Start a new project.
+    "start" | "s" )
       [ $# -lt 1 ] && err "missing required project name" && __p_commands_start_usage && return
-      name="$1"
-      shift
+      name="$2"
+      
+      for p in $PROJECTS; do
+        othername=$(cut -d':' -f1 <<< "$p")
+        otherdir=$(cut -d':' -f2 <<< "$p")
+        if [ "$name" = "$othername" ]; then
+          err "project already exists: \"$othername\" at $otherdir" && return
+          return
+        fi
+      done
+
       safename=${name//_/} # underscores
       safename=${safename// /_} # ' ' => _
       safename=${safename//[^a-zA-Z0-9_]/} # non alphanumeric
       safename=${safename,,} # lowercase
-      dir="~/projects/$safename"
-      postcd=
+      dir="$DEFAULT_PROJECT_DIR/$safename"
+      postcd=false
 
-      for arg in "$@"; do
-        shift
-        case arg in
+      # start looking for more args after the project name
+      i=3
+      while [ $i -le $# ]; do
+        arg=$(cut -d' ' -f$i <<< "$@")
+        i=$((i + 1))
+        case $arg in
           "--with" | "-w" )
-            __p_indev $arg
-            shift
+            __p_indev $arg && return
+            i=$((i + 1))
             ;;
           "--at" | "-a" )
-            [ $# -lt 1 ] && err "missing path for --at/-a" && __p_commands_start_usage && return
-            dir="$1"
-            dir=${dir//_/}
-            dir=${dir// /_}
-            dir=${dir//[^a-zA-Z0-9_]/}
-            dir=${dir,,}
-            shift
+            [ $i -gt $# ] && err "missing path for --at/-a" && __p_commands_start_usage && return
+            dir=$(cut -d' ' -f$i <<< "$@")
+            i=$((i + 1))
             ;;
           "--cd" )
             postcd=true
             ;;
           "--then" )
-            __p_indev $arg
-            shift
+            __p_indev $arg && return
+            i=$((i + 1))
             ;;
           * )
             err "invalid argument: $arg" && __p_commands_start_usage && return
         esac
       done
 
-      sh -c "mkdir -p $dir"
+      mkdir -p $(__p_exp "$dir")
       [ ! "$PROJECTS" = "" ] && echo >> "$P_DIR/projects"
       echo "$name:$dir" >> "$P_DIR/projects"
       echo "  cmd: $cmd" >> "$P_DIR/projects"
-      # TODO: cd into $dir
+      [ $postcd ] && cd $(__p_exp "$dir")
       ;;
 
     "todo" | "t" )
