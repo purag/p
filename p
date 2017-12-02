@@ -8,7 +8,7 @@ else
 fi
 
 P_DIR=$(dirname $0)
-
+DEFAULT_PROJECT_DIR="~/projects"
 
 ## HELPERS
 ## ==========
@@ -34,8 +34,8 @@ err () {
 
 # Output an error and exit with nonzero status
 failwith () {
-  err "$@"
-  usage
+  err "${2:-$1}"
+  [ "$1" = "-u" ] && usage
   exit 1
 }
 
@@ -226,7 +226,7 @@ case $1 in
         commands_todo_usage
         ;;
       *)
-        failwith "unknown command: $2"
+        failwith -u "unknown command: $2"
     esac
     ;;
 
@@ -265,6 +265,6 @@ case $1 in
 
   *)
     # TODO: if $1 is a project name, switch to its directory
-    failwith "unknown command: $1"
+    failwith -u "unknown command: $1"
     ;;
 esac
