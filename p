@@ -1,25 +1,12 @@
 #!/bin/bash
 
-declare exe
-if [[ $(which p) = *"/.p/p" ]]; then
-  exe="p"
-else
-  exe=$0
-fi
-
-P_DIR=$(dirname $0)
-DEFAULT_PROJECT_DIR="~/projects"
-
-## HELPERS
-## ==========
-
-declare -A colors
-colors[red]=$(tput setaf 1)
-colors[green]=$(tput setaf 2)
-colors[reset]=$(tput sgr0)
-
 # Print a string in the specified color
-color () {
+__p_color () {
+  declare -A colors
+  colors[red]=$(tput setaf 1)
+  colors[green]=$(tput setaf 2)
+  colors[reset]=$(tput sgr0)
+
   local c=$1
   shift
   printf '%s' "${colors[$c]}"
@@ -28,49 +15,32 @@ color () {
 }
 
 # Print an error
-err () {
-  color red "error: $1" >&2
+__p_err () {
+  __p_color red "error: $1" >&2
 }
 
 # Output an error and exit with nonzero status
-failwith () {
-  err "${2:-$1}"
-  [ "$1" = "-u" ] && usage
-  exit 1
+__p_failwith () {
+  __p_err "${2:-$1}"
+  [ "$1" = "-u" ] && __p_usage
 }
 
 # Output an "in development" message
-indev () {
-  color green "$1 is still in development!"
-  usage
-  exit 0
+__p_indev () {
+  __p_color green "$1 is still in development!"
+  __p_usage
 }
 
-declare -A shortToLong
-shortToLong[ar]="archive"
-shortToLong[cp]="copy"
-shortToLong[d]="dump"
-shortToLong[g]="go"
-shortToLong[ls]="list"
-shortToLong[r]="restore"
-shortToLong[s]="start"
-shortToLong[t]="todo"
-
-declare -A longToShort
-longToShort[archive]="ar"
-longToShort[copy]="cp"
-longToShort[dump]="d"
-longToShort[go]="g"
-longToShort[list]="ls"
-longToShort[restore]="r"
-longToShort[start]="s"
-longToShort[todo]="t"
+# Perform shell expansion on a given path
+__p_exp () {
+  echo $(sh -c "cd $1; pwd")
+}
 
 ## usage
 ## ==========
 ## Prints the top-level usage instructions
 
-usage () {
+__p_usage () {
   if [ "$1" = "--long" ]; then
     echo "Long usage coming soon!"
     usage
@@ -102,12 +72,12 @@ usage () {
 ## Functions for printing each command's usage
 
 # usage output for p archive/ar
-commands_archive_usage () {
+__p_commands_archive_usage () {
   echo "usage: $exe archive <project>"
 }
 
 # usage output for p copy/cp
-commands_copy_usage () {
+__p_commands_copy_usage () {
   echo "usage: $exe copy <nameToCopy> [<newName>] [<args>]"
   echo "  Create a new project using an existing project's configuration."
   echo ""
@@ -116,27 +86,27 @@ commands_copy_usage () {
 }
 
 # usage output for p dump/d
-commands_dump_usage () {
+__p_commands_dump_usage () {
   echo "usage: $exe dump [<args>]"
 }
 
 # usage output for p go/g
-commands_go_usage () {
+__p_commands_go_usage () {
   echo "usage: $exe go <project>"
 }
 
 # usage output for p list/ls
-commands_list_usage () {
+__p_commands_list_usage () {
   echo "usage: $exe list [<category>] [<args>]"
 }
 
 # usage output for p restore/r
-commands_restore_usage () {
+__p_commands_restore_usage () {
   echo "usage: $exe restore [<dumpfile>]"
 }
 
 # usage output for p start/s
-commands_start_usage () {
+__p_commands_start_usage () {
   echo "usage: $exe start <name> [<args>]"
   echo "  Start a new project."
   echo ""
@@ -153,17 +123,47 @@ commands_start_usage () {
 }
 
 # usage output for p todo/t
-commands_todo_usage () {
+__p_commands_todo_usage () {
   echo "usage: $exe todo [-x TASK_NUMBER] [TASK]"
 }
 
 
-## EXECUTION
+## p
 ## =========
-## Actually run the program
+## The actual function to execute
 
-# Parse ~/.prc
-parse_config () {
+p () {
+  exe="p"
+  P_DIR=$(__p_exp ~/.p)
+  DEFAULT_PROJECT_DIR="~/projects"
+
+  ## HELPERS
+  ## ==========
+
+  declare -A shortToLong
+  shortToLong[ar]="archive"
+  shortToLong[cp]="copy"
+  shortToLong[d]="dump"
+  shortToLong[g]="go"
+  shortToLong[ls]="list"
+  shortToLong[r]="restore"
+  shortToLong[s]="start"
+  shortToLong[t]="todo"
+
+  declare -A longToShort
+  longToShort[archive]="ar"
+  longToShort[copy]="cp"
+  longToShort[dump]="d"
+  longToShort[go]="g"
+  longToShort[list]="ls"
+  longToShort[restore]="r"
+  longToShort[start]="s"
+  longToShort[todo]="t"
+
+  ## EXECUTION
+  ## ==========
+
+  # Parse ~/.prc
   cur=1
   while read line; do
     [[  "$line" =~ ^# ]] && continue
@@ -174,156 +174,164 @@ parse_config () {
         DEFAULT_PROJECT_DIR=$(envsubst <<< "$rhs")
         ;;
       *)
-        failwith "Unknown command at line $cur in ~/.prc: $line"
+        __p_failwith "Unknown command at line $cur in ~/.prc: $line" && return
     esac
     cur=$((cur + 1))
   done < ~/.prc
-}
-parse_config
 
-# Read project configurations
-[ ! -f "$P_DIR/projects" ] && touch "$P_DIR/projects"
-PROJECTS=$(grep "^[A-Za-z_]" "$P_DIR/projects")
+  # Read project configurations
+  [ ! -f "$P_DIR/projects" ] && touch "$P_DIR/projects"
+  PROJECTS=$(grep "^[A-Za-z_]" "$P_DIR/projects")
 
-# Print short usage if no arguments were provided
-if [ $# -lt 1 ]; then
-  # TODO: if CWD is a project directory, print info
-  usage
-  exit 0
-fi
+  # Print short usage if no arguments were provided
+  if [ $# -lt 1 ]; then
+    # TODO: if CWD is a project directory, print info
+    usage
+    return
+  fi
 
-# save the entire command
-cmd="$@"
+  # save the entire command
+  cmd="$@"
 
-subcmd="$1"
-shift
+  subcmd="$1"
+  shift
 
-# Actually parse the command...
-case $subcmd in
+  # Actually parse the command...
+  case $subcmd in
 
-  # Help command. Show detailed instructions for specific commands,
-  #   or long usage if no command is specified
-  "help" | "h" )
-    [ $# -lt 2 ] && usage --long && exit 0
+    # Help command. Show detailed instructions for specific commands,
+    #   or long usage if no command is specified
+    "help" | "h" )
+      [ $# -lt 2 ] && __p_usage --long && return
 
-    case $2 in
-      "archive" | "ar" )
-        commands_archive_usage
-        ;;
-      "copy" | "cp" )
-        commands_copy_usage
-        ;;
-      "dump" | "d" )
-        commands_dump_usage
-        ;;
-      "go" | "g" )
-        commands_go_usage
-        ;;
-      "list" | "ls" )
-        commands_list_usage
-        ;;
-      "restore" | "r" )
-        commands_restore_usage
-        ;;
-      "start" | "s" )
-        commands_start_usage
-        ;;
-      "todo" | "t" )
-        commands_todo_usage
-        ;;
-      *)
-        failwith -u "unknown command: $2"
-    esac
-    ;;
+      case $2 in
+        "archive" | "ar" )
+          __p_commands_archive_usage
+          ;;
+        "copy" | "cp" )
+          __p_commands_copy_usage
+          ;;
+        "dump" | "d" )
+          __p_commands_dump_usage
+          ;;
+        "go" | "g" )
+          __p_commands_go_usage
+          ;;
+        "list" | "ls" )
+          __p_commands_list_usage
+          ;;
+        "restore" | "r" )
+          __p_commands_restore_usage
+          ;;
+        "start" | "s" )
+          __p_commands_start_usage
+          ;;
+        "todo" | "t" )
+          __p_commands_todo_usage
+          ;;
+        *)
+          __p_failwith -u "unknown command: $2" && return
+      esac
+      ;;
 
-  "archive" | "ar" )
-    indev $1
-    ;;
+    "archive" | "ar" )
+      __p_indev $1
+      ;;
 
-  "copy" | "cp" )
-    indev $1
-    ;;
+    "copy" | "cp" )
+      __p_indev $1
+      ;;
 
-  "dump" | "d" )
-    indev $1
-    ;;
+    "dump" | "d" )
+      __p_indev $1
+      ;;
 
-  "go" | "g" )
-    indev $1
-    ;;
-
-  "list" | "ls" )
-    if [ "$PROJECTS" = "" ]; then
-      echo "You don't have any projects...yet!"
-      echo
-      echo "Start a new project with: $exe start"
-    else
+    "go" | "g" )
+      [ $# -lt 1 ] && err "missing required project name" && __p_commands_go_usage && return
       for p in $PROJECTS; do
         name=$(cut -d':' -f1 <<< "$p")
         dir=$(cut -d':' -f2 <<< "$p")
-        echo "\"$name\" at $dir:"
-        echo "  "
+        if [ "$name" = "$1" ]; then
+          cd $(__p_exp $dir)
+          return
+        fi
       done
-    fi
-    ;;
+      __p_failwith "no project named \"$1\"" && return
+      ;;
 
-  "restore" | "r" )
-    indev $1
-    ;;
+    "list" | "ls" )
+      if [ "$PROJECTS" = "" ]; then
+        echo "You don't have any projects...yet!"
+        echo
+        echo "Start a new project with: $exe start"
+      else
+        for p in $PROJECTS; do
+          name=$(cut -d':' -f1 <<< "$p")
+          dir=$(cut -d':' -f2 <<< "$p")
+          echo "\"$name\" at $dir:"
+          echo "  "
+        done
+      fi
+      ;;
 
-  # Start command. Start a new project.
-  "start" | "s" )
-    [ $# -lt 1 ] && err "missing required project name" && commands_start_usage && exit 1
-    name="$1"
-    shift
-    safename=${name//_/} # underscores
-    safename=${safename// /_} # ' ' => _
-    safename=${safename//[^a-zA-Z0-9_]/} # non alphanumeric
-    safename=${safename,,} # lowercase
-    dir="~/projects/$safename"
-    postcd=
+    "restore" | "r" )
+      __p_indev $1
+      ;;
 
-    for arg in "$@"; do
+      # Start command. Start a new project.
+      "start" | "s" )
+      [ $# -lt 1 ] && err "missing required project name" && __p_commands_start_usage && return
+      name="$1"
       shift
-      case arg in
-        "--with" | "-w" )
-          indev $arg
-          shift
-          ;;
-        "--at" | "-a" )
-          [ $# -lt 1 ] && err "missing path for --at/-a" && commands_start_usage && exit 1
-          dir="$1"
-          dir=${dir//_/}
-          dir=${dir// /_}
-          dir=${dir//[^a-zA-Z0-9_]/}
-          dir=${dir,,}
-          shift
-          ;;
-        "--cd" )
-          postcd=true
-          ;;
-        "--then" )
-          indev $arg
-          shift
-          ;;
-        * )
-          err "invalid argument: $arg" && commands_start_usage && exit 1
-      esac
-    done
+      safename=${name//_/} # underscores
+      safename=${safename// /_} # ' ' => _
+      safename=${safename//[^a-zA-Z0-9_]/} # non alphanumeric
+      safename=${safename,,} # lowercase
+      dir="~/projects/$safename"
+      postcd=
 
-    sh -c "mkdir -p $dir"
-    [ ! "$PROJECTS" = "" ] && echo >> "$P_DIR/projects"
-    echo "$name:$dir" >> "$P_DIR/projects"
-    echo "  cmd: $cmd" >> "$P_DIR/projects"
-    # TODO: cd into $dir
-    ;;
+      for arg in "$@"; do
+        shift
+        case arg in
+          "--with" | "-w" )
+            __p_indev $arg
+            shift
+            ;;
+          "--at" | "-a" )
+            [ $# -lt 1 ] && err "missing path for --at/-a" && __p_commands_start_usage && return
+            dir="$1"
+            dir=${dir//_/}
+            dir=${dir// /_}
+            dir=${dir//[^a-zA-Z0-9_]/}
+            dir=${dir,,}
+            shift
+            ;;
+          "--cd" )
+            postcd=true
+            ;;
+          "--then" )
+            __p_indev $arg
+            shift
+            ;;
+          * )
+            err "invalid argument: $arg" && __p_commands_start_usage && return
+        esac
+      done
 
-  "todo" | "t" )
-    indev $1
-    ;;
+      sh -c "mkdir -p $dir"
+      [ ! "$PROJECTS" = "" ] && echo >> "$P_DIR/projects"
+      echo "$name:$dir" >> "$P_DIR/projects"
+      echo "  cmd: $cmd" >> "$P_DIR/projects"
+      # TODO: cd into $dir
+      ;;
 
-  *)
-    # TODO: if $1 is a project name, switch to its directory
-    failwith -u "unknown command: $1"
-    ;;
-esac
+    "todo" | "t" )
+      __p_indev $1
+      ;;
+
+    *)
+      # TODO: if $1 is a project name, switch to its directory
+      __p_failwith -u "unknown command: $1" && return
+      ;;
+  esac
+}
