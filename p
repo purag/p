@@ -164,15 +164,26 @@ commands_todo_usage () {
 
 # Parse ~/.prc
 parse_config () {
-  true
+  cur=1
+  while read line; do
+    [[  "$line" =~ ^# ]] && continue
+    lhs=$(cut -d'=' -f1 <<< "$line")
+    rhs=$(cut -d'=' -f2 <<< "$line")
+    case $lhs in
+      "default_project_dir")
+        DEFAULT_PROJECT_DIR=$(envsubst <<< "$rhs")
+        ;;
+      *)
+        failwith "Unknown command at line $cur in ~/.prc: $line"
+    esac
+    cur=$((cur + 1))
+  done < ~/.prc
 }
 parse_config
 
 # Read project configurations
-read_projects () {
-  true
-}
-read_projects
+[ ! -f "$P_DIR/projects" ] && touch "$P_DIR/projects"
+PROJECTS=$(grep "^[A-Za-z_]" "$P_DIR/projects")
 
 # Print short usage if no arguments were provided
 if [ $# -lt 1 ]; then
