@@ -35,7 +35,7 @@ __p_indev () {
 __p_exp () {
   exp=$(sh -c "cd $1; pwd" 2>&1)
   if [ ! $? ]; then
-    echo $(cut -d' ' -f-1 <<< $"epx")
+    echo $(cut -d' ' -f-1 <<< "$exp")
   else
     echo "$exp"
   fi
@@ -168,6 +168,46 @@ p () {
   ## EXECUTION
   ## ==========
 
+  # save the entire command
+  cmd="$@"
+
+  # help command. show detailed instructions for specific commands,
+  #   or long usage if no command is specified
+  if [ "$1" = "help" ] || [ "$1" = "h" ]; then
+    [ $# -ne 2 ] && __p_usage --long && return
+
+    case $2 in
+      "archive" | "ar" )
+        __p_commands_archive_usage
+        ;;
+      "copy" | "cp" )
+        __p_commands_copy_usage
+        ;;
+      "dump" | "d" )
+        __p_commands_dump_usage
+        ;;
+      "go" | "g" )
+        __p_commands_go_usage
+        ;;
+      "list" | "ls" )
+        __p_commands_list_usage
+        ;;
+      "restore" | "r" )
+        __p_commands_restore_usage
+        ;;
+      "start" | "s" )
+        __p_commands_start_usage
+        ;;
+      "todo" | "t" )
+        __p_commands_todo_usage
+        ;;
+      *)
+        __p_failwith -u "unknown command: $2"
+    esac
+
+    return
+  fi
+
   # Parse ~/.prc
   cur=1
   while read line; do
@@ -176,7 +216,7 @@ p () {
     rhs=$(cut -d'=' -f2 <<< "$line" | xargs)
     case $lhs in
       "default_project_dir")
-        DEFAULT_PROJECT_DIR=$(envsubst <<< "$rhs")
+        DEFAULT_PROJECT_DIR=$(__p_exp "$rhs")
         ;;
       *)
         __p_failwith "Unknown command at line $cur in ~/.prc: $line" && return
@@ -200,42 +240,6 @@ p () {
 
   # Actually parse the command...
   case $1 in
-
-    # Help command. Show detailed instructions for specific commands,
-    #   or long usage if no command is specified
-    "help" | "h" )
-      [ $# -ne 2 ] && __p_usage --long && return
-
-      case $2 in
-        "archive" | "ar" )
-          __p_commands_archive_usage
-          ;;
-        "copy" | "cp" )
-          __p_commands_copy_usage
-          ;;
-        "dump" | "d" )
-          __p_commands_dump_usage
-          ;;
-        "go" | "g" )
-          __p_commands_go_usage
-          ;;
-        "list" | "ls" )
-          __p_commands_list_usage
-          ;;
-        "restore" | "r" )
-          __p_commands_restore_usage
-          ;;
-        "start" | "s" )
-          __p_commands_start_usage
-          ;;
-        "todo" | "t" )
-          __p_commands_todo_usage
-          ;;
-        *)
-          __p_failwith -u "unknown command: $2" && return
-      esac
-      ;;
-
     "archive" | "ar" )
       __p_indev $1
       ;;
@@ -283,7 +287,7 @@ p () {
 
     # Start command. Start a new project.
     "start" | "s" )
-      [ $# -lt 1 ] && err "missing required project name" && __p_commands_start_usage && return
+      [ $# -lt 2 ] && __p_err "missing required project name" && __p_commands_start_usage && return
       name="$2"
       
       for p in $PROJECTS; do
