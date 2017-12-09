@@ -230,7 +230,15 @@ p () {
 
   # Print short usage if no arguments were provided
   if [ $# -lt 1 ]; then
-    # TODO: if CWD is a project directory, print info
+    for p in $PROJECTS; do
+      name=$(cut -d':' -f1 <<< "$p")
+      dir=$(cut -d':' -f2 <<< "$p")
+      if [[ "$(pwd)" =~ "$(__p_exp $dir)"* ]]; then
+        echo "\"$name\" at $dir:"
+        echo "  "
+        return
+      fi
+    done
     __p_usage
     return
   fi
